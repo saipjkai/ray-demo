@@ -1,0 +1,71 @@
+# A unique identifier for the head node and workers of this cluster.
+cluster_name: basic-ray-application
+
+# The maximum number of workers nodes to launch in addition to the head
+# node. This takes precedence over min_workers. min_workers defaults to 0.
+max_workers: 4 # this means two workers
+
+# The autoscaler will scale up the cluster faster with higher upscaling speed.
+# E.g., if the task requires adding more nodes then autoscaler will gradually
+# scale up the cluster in chunks of upscaling_speed*currently_running_nodes.
+# This number should be > 0.
+upscaling_speed: 1.0
+
+# If a node is idle for this many minutes, it will be removed.
+idle_timeout_minutes: 5
+
+# Cloud-provider specific configuration.
+provider:
+    type: aws
+    region: us-east-1
+
+# How Ray will authenticate with newly launched nodes.
+auth:
+   ssh_user: ubuntu
+
+available_node_types:
+    ray.head.default:
+        node_config:
+            InstanceType: t3a.2xlarge
+            BlockDeviceMappings:
+                - DeviceName: /dev/sda1
+                  Ebs:
+                      VolumeSize: 140
+    ray.worker.default:
+        min_workers: 4
+        max_workers: 4
+        node_config:
+            InstanceType: t3a.2xlarge
+            InstanceMarketOptions:
+                MarketType: spot
+        # resources: {"CPU": 8}
+
+head_node_type: ray.head.default
+
+# setup_commands:
+  # - pip install ray  
+  # - pip install ultralytics
+
+head_setup_commands: 
+    - pip install ray
+    - pip install ultralytics
+
+# Command to start ray on the head node. You don't need to change this.
+head_start_ray_commands:
+    - ray stop
+    - ray start --head --port=6379 --object-manager-port=8076 --autoscaling-config=~/ray_bootstrap_config.yaml
+
+worker_setup_commands: 
+    - pip install ray
+    - pip install ultralytics
+
+# Command to start ray on worker nodes. You don't need to change this.
+worker_start_ray_commands:
+    - ray stop
+    - ray start --address=$RAY_HEAD_IP:6379 --object-manager-port=8076
+
+
+#_INSTANCES_(CPU)
+# t3a.2xlarge => (8 core CPU, 32 GiB RAM, 140 GiB EBS Storage) 
+# m5a.4xlarge => (16 core CPU, 64 GiB RAM, 140 GiB EBS Storage)
+# m6a.8xlarge => (32 core CPU, 128 GiB RAM, 140 GiB EBS Storage)

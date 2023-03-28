@@ -1,0 +1,10 @@
+numpy
+pandas
+opencv-python
+matplotlib
+ray
+'ray[data]'
+'ray[serve]'
+packaging
+starlette
+ultralytics
